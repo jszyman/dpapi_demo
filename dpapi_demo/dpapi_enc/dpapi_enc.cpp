@@ -23,7 +23,6 @@ void main()
 
     DATA_BLOB DataIn;
     DATA_BLOB DataOut;
-    DATA_BLOB DataVerify;
     BYTE *pbDataInput = (BYTE *)"Hello world of data protection.";
     DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
     DataIn.pbData = pbDataInput;
@@ -63,6 +62,7 @@ void main()
     {
         MyHandleError("Encryption error!");
     }
+
     //-------------------------------------------------------------------
     //   Write protected data to disk
     FILE* fileEnc;
@@ -72,35 +72,10 @@ void main()
     fclose(fileEnc);
 
     //-------------------------------------------------------------------
-    //   Begin unprotect phase.
-
-    if (CryptUnprotectData(
-        &DataOut,
-        &pDescrOut,
-        NULL,                 // Optional entropy
-        NULL,                 // Reserved
-        &PromptStruct,        // Optional PromptStruct
-        0,
-        &DataVerify))
-    {
-        printf("The decrypted data is: %s\n", DataVerify.pbData);
-        printf("The description of the data was: %S\n", pDescrOut);
-    }
-    else
-    {
-        MyHandleError("Decryption error!");
-    }
-    //-------------------------------------------------------------------
-    // At this point, memcmp could be used to compare DataIn.pbData and 
-    // DataVerify.pbDate for equality. If the two functions worked
-    // correctly, the two byte strings are identical. 
-
-    //-------------------------------------------------------------------
     //  Clean up.
 
     LocalFree(pDescrOut);
     LocalFree(DataOut.pbData);
-    LocalFree(DataVerify.pbData);
 } // End of main
 
 //-------------------------------------------------------------------
