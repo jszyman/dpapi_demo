@@ -24,8 +24,8 @@ void main()
     //DATA_BLOB DataIn;
     DATA_BLOB DataOut;
     DATA_BLOB DataVerify;
-    BYTE dataOutBlob[256] = { 0 };
-    BYTE dataVerifyBuf[256] = { 0 };
+    BYTE dataOutBlob[1024] = { 0 };
+    BYTE dataVerifyBuf[1024] = { 0 };
     DataOut.pbData = dataOutBlob;
     DataVerify.pbData = dataVerifyBuf;
     //BYTE *pbDataInput = (BYTE *)"Hello world of data protection.";
