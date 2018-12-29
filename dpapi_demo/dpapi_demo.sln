@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dpapi_enc", "dpapi_enc\dpapi_enc.vcxproj", "{7698D221-4B43-4FBB-AA9E-1B7D6A69F35D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dpapi_dec", "dpapi_dec\dpapi_dec.vcxproj", "{F50A8B29-DF01-4FB7-B612-F22CE82B5ADA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7698D221-4B43-4FBB-AA9E-1B7D6A69F35D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7698D221-4B43-4FBB-AA9E-1B7D6A69F35D}.Debug|Win32.Build.0 = Debug|Win32
+		{7698D221-4B43-4FBB-AA9E-1B7D6A69F35D}.Release|Win32.ActiveCfg = Release|Win32
+		{7698D221-4B43-4FBB-AA9E-1B7D6A69F35D}.Release|Win32.Build.0 = Release|Win32
+		{F50A8B29-DF01-4FB7-B612-F22CE82B5ADA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F50A8B29-DF01-4FB7-B612-F22CE82B5ADA}.Debug|Win32.Build.0 = Debug|Win32
+		{F50A8B29-DF01-4FB7-B612-F22CE82B5ADA}.Release|Win32.ActiveCfg = Release|Win32
+		{F50A8B29-DF01-4FB7-B612-F22CE82B5ADA}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
