@@ -23,25 +23,16 @@ void main()
 
     DATA_BLOB DataIn;
     DATA_BLOB DataOut;
-    BYTE *pbDataInput = (BYTE *)"Hello world of data protection.";
+    BYTE *pbDataInput = (BYTE *)"*** Hello world of data protection. ***";
     DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
     DataIn.pbData = pbDataInput;
     DataIn.cbData = cbDataInput;
-    CRYPTPROTECT_PROMPTSTRUCT PromptStruct;
     LPWSTR pDescrOut = NULL;
 
     //-------------------------------------------------------------------
     //  Begin processing.
 
     printf("The data to be encrypted is: %s\n", pbDataInput);
-
-    //-------------------------------------------------------------------
-    //  Initialize PromptStruct.
-
-    ZeroMemory(&PromptStruct, sizeof(PromptStruct));
-    PromptStruct.cbSize = sizeof(PromptStruct);
-    PromptStruct.dwPromptFlags = CRYPTPROTECT_PROMPT_ON_PROTECT;
-    PromptStruct.szPrompt = L"This is a user prompt.";
 
     //-------------------------------------------------------------------
     //  Begin protect phase.
@@ -52,7 +43,7 @@ void main()
         NULL,                               // Optional entropy
         // not used.
         NULL,                               // Reserved.
-        &PromptStruct,                      // Pass a PromptStruct.
+        NULL,                               // optional PromptStruct.
         0,
         &DataOut))
     {

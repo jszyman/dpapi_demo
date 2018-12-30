@@ -32,16 +32,7 @@ void main()
     //DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
     //DataIn.pbData = pbDataInput;
     //DataIn.cbData = cbDataInput;
-    CRYPTPROTECT_PROMPTSTRUCT PromptStruct;
     LPWSTR pDescrOut = NULL;
-
-    //-------------------------------------------------------------------
-    //  Initialize PromptStruct.
-
-    ZeroMemory(&PromptStruct, sizeof(PromptStruct));
-    PromptStruct.cbSize = sizeof(PromptStruct);
-    PromptStruct.dwPromptFlags = CRYPTPROTECT_PROMPT_ON_PROTECT;
-    PromptStruct.szPrompt = L"This is a user prompt.";
 
     //-------------------------------------------------------------------
     //   Read protected data from disk
@@ -49,9 +40,6 @@ void main()
     errno_t err = fopen_s(&fileEnc, "creds.enc", "rb");
     fread(&(DataOut.cbData), sizeof(DataOut.cbData), 1, fileEnc);    // read size of encrypted blob
     fread(DataOut.pbData, DataOut.cbData, 1, fileEnc);               // read encrypted blob
-
-    //fwrite(&(DataOut.cbData), sizeof(DataOut.cbData), 1, fileEnc);   // write size of encrypted blob
-    //fwrite(DataOut.pbData, DataOut.cbData, 1, fileEnc);              // write encrypted blob
     fclose(fileEnc);
 
     //-------------------------------------------------------------------
@@ -62,7 +50,7 @@ void main()
         &pDescrOut,
         NULL,                 // Optional entropy
         NULL,                 // Reserved
-        &PromptStruct,        // Optional PromptStruct
+        NULL,                 // Optional PromptStruct
         0,
         &DataVerify))
     {
