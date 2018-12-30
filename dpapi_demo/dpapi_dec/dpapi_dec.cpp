@@ -55,6 +55,7 @@ void main()
         &DataVerify))
     {
         printf("The decrypted data is: %s\n", DataVerify.pbData);
+        SecureZeroMemory(DataVerify.pbData, DataVerify.cbData);
         printf("The description of the data was: %S\n", pDescrOut);
     }
     else

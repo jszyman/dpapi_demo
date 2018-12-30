@@ -11,7 +11,7 @@
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 void MyHandleError(char *s);
 
-void main()
+int main(int argc, char * argv[])
 {
 
     // Copyright (C) Microsoft.  All rights reserved.
@@ -27,6 +27,7 @@ void main()
     DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
     DataIn.pbData = pbDataInput;
     DataIn.cbData = cbDataInput;
+    DWORD protFlags = 0;
     LPWSTR pDescrOut = NULL;
 
     //-------------------------------------------------------------------
@@ -37,6 +38,18 @@ void main()
     //-------------------------------------------------------------------
     //  Begin protect phase.
 
+    if (argc >= 2)
+    {
+        if (strcmp(argv[1], "-all") == 0)
+        {
+            protFlags |= CRYPTPROTECT_LOCAL_MACHINE;
+        }
+        else
+        {
+            protFlags &= (~CRYPTPROTECT_LOCAL_MACHINE);
+        }
+    }
+
     if (CryptProtectData(
         &DataIn,
         L"This is the description string.", // A description string. 
@@ -44,7 +57,7 @@ void main()
         // not used.
         NULL,                               // Reserved.
         NULL,                               // optional PromptStruct.
-        0,
+        protFlags,
         &DataOut))
     {
         printf("The encryption phase worked. \n");
@@ -67,6 +80,7 @@ void main()
 
     LocalFree(pDescrOut);
     LocalFree(DataOut.pbData);
+    exit(0);
 } // End of main
 
 //-------------------------------------------------------------------
