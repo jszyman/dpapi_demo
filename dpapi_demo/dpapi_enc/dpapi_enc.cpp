@@ -9,7 +9,9 @@
 #include <windows.h>
 #include <Wincrypt.h>
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
+
 void MyHandleError(char *s);
+void printHelp(char* progName);
 
 int main(int argc, char * argv[])
 {
@@ -27,28 +29,32 @@ int main(int argc, char * argv[])
     DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
     DataIn.pbData = pbDataInput;
     DataIn.cbData = cbDataInput;
+    CHAR *fileName = "secret.enc";
     DWORD protFlags = 0;
     LPWSTR pDescrOut = NULL;
 
     //-------------------------------------------------------------------
     //  Begin processing.
+    if (argc >= 3)
+    {
+        if (strcmp(argv[1], "-machine") == 0)
+            protFlags |= CRYPTPROTECT_LOCAL_MACHINE;
+        else
+            // option "-user" encrypts only for current user
+            protFlags &= (~CRYPTPROTECT_LOCAL_MACHINE);
+
+        fileName = argv[2];
+    }
+    else
+    {
+        printHelp(argv[0]);
+        exit(1);
+    }
 
     printf("The data to be encrypted is: %s\n", pbDataInput);
 
     //-------------------------------------------------------------------
     //  Begin protect phase.
-
-    if (argc >= 2)
-    {
-        if (strcmp(argv[1], "-all") == 0)
-        {
-            protFlags |= CRYPTPROTECT_LOCAL_MACHINE;
-        }
-        else
-        {
-            protFlags &= (~CRYPTPROTECT_LOCAL_MACHINE);
-        }
-    }
 
     if (CryptProtectData(
         &DataIn,
@@ -70,7 +76,7 @@ int main(int argc, char * argv[])
     //-------------------------------------------------------------------
     //   Write protected data to disk
     FILE* fileEnc;
-    fopen_s(&fileEnc, "creds.enc", "wb");
+    fopen_s(&fileEnc, fileName, "wb");
     fwrite(&(DataOut.cbData), sizeof(DataOut.cbData), 1, fileEnc);   // write size of encrypted blob
     fwrite(DataOut.pbData, DataOut.cbData, 1, fileEnc);              // write encrypted blob
     fclose(fileEnc);
@@ -98,3 +104,12 @@ void MyHandleError(char *s)
     fprintf(stderr, "Program terminating. \n");
     exit(1);
 } // End of MyHandleError
+
+void printHelp(char * progName)
+{
+    printf("Program shall be called as follows:\n");
+    printf("%s [-user/-machine] <file_name>\n", progName);
+    printf("\t-user\t\t encrypts data for current user only\n");
+    printf("\t-machine\t encrypts data for all authrenticated users in this machine\n");
+    printf("\t<file_name>\t optional file name for encrypted data (default name is secret.enc)\n");
+}
