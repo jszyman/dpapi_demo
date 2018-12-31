@@ -7,7 +7,9 @@
 
 #include <stdio.h>
 #include <windows.h>
+#include <malloc.h>
 #include <Wincrypt.h>
+
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 void MyHandleError(char *s);
 void printHelp(char * progName);
@@ -25,10 +27,6 @@ int main(int argc, char *argv[])
     //DATA_BLOB DataIn;
     DATA_BLOB DataOut;
     DATA_BLOB DataVerify;
-    BYTE dataOutBlob[1024] = { 0 };
-    BYTE dataVerifyBuf[1024] = { 0 };
-    DataOut.pbData = dataOutBlob;
-    DataVerify.pbData = dataVerifyBuf;
     LPWSTR pDescrOut = NULL;
     CHAR * fileName = "secret.enc";
 
@@ -45,6 +43,21 @@ int main(int argc, char *argv[])
     FILE* fileEnc;
     errno_t err = fopen_s(&fileEnc, fileName, "rb");
     fread(&(DataOut.cbData), sizeof(DataOut.cbData), 1, fileEnc);    // read size of encrypted blob
+    if (DataOut.cbData <= _HEAP_MAXREQ)
+    {
+        DataOut.pbData = (BYTE*) malloc(DataOut.cbData);
+        if (NULL == DataOut.pbData)
+        {
+            printf("Memory allocation error.\n");
+            exit(1);
+        }
+    }
+    else
+    {
+        printf("Encrypted data size too big.\n");
+        exit(1);
+    }
+
     fread(DataOut.pbData, DataOut.cbData, 1, fileEnc);               // read encrypted blob
     fclose(fileEnc);
 
@@ -76,7 +89,9 @@ int main(int argc, char *argv[])
     //-------------------------------------------------------------------
     //  Clean up.
 
+    LocalFree(DataOut.pbData);
     LocalFree(pDescrOut);
+    LocalFree(DataVerify.pbData);
     exit(0);
 } // End of main
 
