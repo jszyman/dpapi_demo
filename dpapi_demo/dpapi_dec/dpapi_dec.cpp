@@ -10,8 +10,9 @@
 #include <Wincrypt.h>
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 void MyHandleError(char *s);
+void printHelp(char * progName);
 
-void main()
+int main(int argc, char *argv[])
 {
 
     // Copyright (C) Microsoft.  All rights reserved.
@@ -28,16 +29,21 @@ void main()
     BYTE dataVerifyBuf[1024] = { 0 };
     DataOut.pbData = dataOutBlob;
     DataVerify.pbData = dataVerifyBuf;
-    //BYTE *pbDataInput = (BYTE *)"Hello world of data protection.";
-    //DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
-    //DataIn.pbData = pbDataInput;
-    //DataIn.cbData = cbDataInput;
     LPWSTR pDescrOut = NULL;
+    CHAR * fileName = "secret.enc";
+
+    if (argc >= 2)
+        fileName = argv[1];
+    else
+    {
+        printHelp(argv[0]);
+        exit(1);
+    }
 
     //-------------------------------------------------------------------
     //   Read protected data from disk
     FILE* fileEnc;
-    errno_t err = fopen_s(&fileEnc, "creds.enc", "rb");
+    errno_t err = fopen_s(&fileEnc, fileName, "rb");
     fread(&(DataOut.cbData), sizeof(DataOut.cbData), 1, fileEnc);    // read size of encrypted blob
     fread(DataOut.pbData, DataOut.cbData, 1, fileEnc);               // read encrypted blob
     fclose(fileEnc);
@@ -71,8 +77,7 @@ void main()
     //  Clean up.
 
     LocalFree(pDescrOut);
-    //LocalFree(DataOut.pbData);
-    //LocalFree(DataVerify.pbData);
+    exit(0);
 } // End of main
 
 //-------------------------------------------------------------------
@@ -91,3 +96,9 @@ void MyHandleError(char *s)
     exit(1);
 } // End of MyHandleError
 
+void printHelp(char * progName)
+{
+    printf("Program shall be called as follows:\n");
+    printf("%s file_name\n", progName);
+    printf("\tfile_name\t file name with encrypted data\n");
+}
