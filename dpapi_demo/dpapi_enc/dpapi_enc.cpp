@@ -12,6 +12,9 @@
 
 void MyHandleError(char *s);
 void printHelp(char* progName);
+void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn, BOOL * din);
+void getDataForEncryption(BOOL isStdin, DWORD cb, BYTE * pb);
+BOOL isStdinEmpty(void);
 
 int main(int argc, char * argv[])
 {
@@ -32,27 +35,27 @@ int main(int argc, char * argv[])
     CHAR *fileName = "secret.enc";
     DWORD protFlags = 0;
     LPWSTR pDescrOut = NULL;
+    BOOL dataFromStdin = FALSE;
 
     //-------------------------------------------------------------------
     //  Begin processing.
-    if (argc >= 2)
-    {
-        if (strcmp(argv[1], "-machine") == 0)
-            protFlags |= CRYPTPROTECT_LOCAL_MACHINE;
-        else
-            // option "-user" encrypts only for current user
-            protFlags &= (~CRYPTPROTECT_LOCAL_MACHINE);
-        
-        if (argc >= 3)
-            fileName = argv[2];
-    }
+    parseArgs(argc, argv, &protFlags, &fileName, &dataFromStdin);
+    //getDataForEncryption(dataFromStdin, NULL, NULL);
+    if (isStdinEmpty())
+        printf("STDIN empty\n");
     else
-    {
-        printHelp(argv[0]);
-        exit(1);
-    }
+        printf("STDIN has some data\n");
 
-    printf("The data to be encrypted is: %s\n", pbDataInput);
+
+    printf("Enter data to be encrypted (data bigger than 1KB will be stripped) \n>");
+    char buf[1024] = { 0 };
+    fgets(buf, sizeof(buf), stdin);
+    buf[strcspn(buf, "\n\r")] = '\0';
+
+    printf("The data to be encrypted is: %s\n", buf);
+    
+    DataIn.pbData = (BYTE*) buf;
+    DataIn.cbData = strlen(buf);
 
     //-------------------------------------------------------------------
     //  Begin protect phase.
@@ -109,8 +112,58 @@ void MyHandleError(char *s)
 void printHelp(char * progName)
 {
     printf("Program shall be called as follows:\n");
-    printf("%s [-user/-machine] <file_name>\n", progName);
+    printf("%s [-user/-machine] <-> <file_name>\n", progName);
     printf("\t-user\t\t encrypts data for current user only\n");
     printf("\t-machine\t encrypts data for all authrenticated users in this machine\n");
+    printf("\t-\t\t optional specifier for data source, - specifies stdin (if omitted it encrypts example hardcoded string from code)\n");
     printf("\t<file_name>\t optional file name for encrypted data (default name is secret.enc)\n");
+}
+
+void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn, BOOL * din)
+{
+    if (argc >= 2)
+    {
+        if (strcmp(argv[1], "-machine") == 0)
+            *flg |= CRYPTPROTECT_LOCAL_MACHINE;
+        else
+            // option "-user" encrypts only for current user
+            *flg &= (~CRYPTPROTECT_LOCAL_MACHINE);
+
+        if (argc >= 3)
+            *fn = argv[2];
+
+        if (argc >= 4)
+            if (strcmp(argv[3], "-") == 0)
+                *din = TRUE;
+    }
+    else
+    {
+        printHelp(argv[0]);
+        exit(1);
+    }
+}
+
+void getDataForEncryption(BOOL isStdin, DWORD cb, BYTE * pb)
+{
+    if (isStdin)
+    {
+        if (isStdinEmpty())
+            printf("STDIN empty\n");
+        else
+            printf("STDIN has some data\n");
+    }
+}
+
+BOOL isStdinEmpty(void)
+{
+    if ((fseek(stdin, 0, SEEK_END), ftell(stdin)) > 0)
+    {
+        rewind(stdin);
+        return FALSE;
+    }
+    else
+    {
+        rewind(stdin);
+        return TRUE;
+    }
 }
