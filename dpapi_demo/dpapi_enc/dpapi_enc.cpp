@@ -12,8 +12,8 @@
 
 void MyHandleError(char *s);
 void printHelp(char* progName);
-void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn, BOOL * din);
-void getDataForEncryption(BOOL isStdin, DWORD cb, BYTE * pb);
+void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn);
+void getDataForEncryption(BYTE * pb, DWORD cb);
 BOOL isStdinEmpty(void);
 
 int main(int argc, char * argv[])
@@ -28,34 +28,22 @@ int main(int argc, char * argv[])
 
     DATA_BLOB DataIn;
     DATA_BLOB DataOut;
-    BYTE *pbDataInput = (BYTE *)"*** Hello world of data protection. ***";
-    DWORD cbDataInput = strlen((char *)pbDataInput) + 1;
-    DataIn.pbData = pbDataInput;
-    DataIn.cbData = cbDataInput;
+    DataIn.pbData = NULL;
+    DataIn.cbData = 1024U;
     CHAR *fileName = "secret.enc";
     DWORD protFlags = 0;
-    LPWSTR pDescrOut = NULL;
-    BOOL dataFromStdin = FALSE;
 
     //-------------------------------------------------------------------
     //  Begin processing.
-    parseArgs(argc, argv, &protFlags, &fileName, &dataFromStdin);
-    //getDataForEncryption(dataFromStdin, NULL, NULL);
-    if (isStdinEmpty())
-        printf("STDIN empty\n");
-    else
-        printf("STDIN has some data\n");
-
-
-    printf("Enter data to be encrypted (data bigger than 1KB will be stripped) \n>");
-    char buf[1024] = { 0 };
-    fgets(buf, sizeof(buf), stdin);
-    buf[strcspn(buf, "\n\r")] = '\0';
-
-    printf("The data to be encrypted is: %s\n", buf);
-    
-    DataIn.pbData = (BYTE*) buf;
-    DataIn.cbData = strlen(buf);
+    parseArgs(argc, argv, &protFlags, &fileName);
+    DataIn.pbData = (BYTE*) malloc(DataIn.cbData);
+    if (DataIn.pbData == NULL)
+    {
+        MyHandleError("Data In allocation error!");
+    }
+    getDataForEncryption(DataIn.pbData, DataIn.cbData);
+    DataIn.cbData = strlen((char*)DataIn.pbData) + 1;   //encrypt only till '\0'
+    printf("The data to be encrypted is: %s\n", DataIn.pbData);
 
     //-------------------------------------------------------------------
     //  Begin protect phase.
@@ -88,7 +76,7 @@ int main(int argc, char * argv[])
     //-------------------------------------------------------------------
     //  Clean up.
 
-    LocalFree(pDescrOut);
+    LocalFree(DataIn.pbData);
     LocalFree(DataOut.pbData);
     exit(0);
 } // End of main
@@ -111,15 +99,14 @@ void MyHandleError(char *s)
 
 void printHelp(char * progName)
 {
-    printf("Program shall be called as follows:\n");
-    printf("%s [-user/-machine] <-> <file_name>\n", progName);
+    printf("Program reads data for encryption from stdin and shall be called as follows:\n");
+    printf("%s [-user/-machine] <file_name>\n", progName);
     printf("\t-user\t\t encrypts data for current user only\n");
     printf("\t-machine\t encrypts data for all authrenticated users in this machine\n");
-    printf("\t-\t\t optional specifier for data source, - specifies stdin (if omitted it encrypts example hardcoded string from code)\n");
     printf("\t<file_name>\t optional file name for encrypted data (default name is secret.enc)\n");
 }
 
-void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn, BOOL * din)
+void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn)
 {
     if (argc >= 2)
     {
@@ -131,10 +118,6 @@ void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn, BOOL * din)
 
         if (argc >= 3)
             *fn = argv[2];
-
-        if (argc >= 4)
-            if (strcmp(argv[3], "-") == 0)
-                *din = TRUE;
     }
     else
     {
@@ -143,15 +126,13 @@ void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn, BOOL * din)
     }
 }
 
-void getDataForEncryption(BOOL isStdin, DWORD cb, BYTE * pb)
+void getDataForEncryption(BYTE * pb, DWORD cb)
 {
-    if (isStdin)
-    {
-        if (isStdinEmpty())
-            printf("STDIN empty\n");
-        else
-            printf("STDIN has some data\n");
-    }
+    if (isStdinEmpty())
+        printf("Enter data to be encrypted (data bigger than %ld B will be stripped) \n> ", cb);
+
+    fgets( (char*)pb, cb, stdin);
+    pb[strcspn( (char*)pb, "\n\r")] = '\0';
 }
 
 BOOL isStdinEmpty(void)
