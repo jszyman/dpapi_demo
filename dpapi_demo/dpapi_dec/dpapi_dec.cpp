@@ -24,7 +24,6 @@ int main(int argc, char *argv[])
     //-------------------------------------------------------------------
     // Declare and initialize variables.
 
-    //DATA_BLOB DataIn;
     DATA_BLOB DataOut;
     DATA_BLOB DataVerify;
     LPWSTR pDescrOut = NULL;
@@ -48,14 +47,12 @@ int main(int argc, char *argv[])
         DataOut.pbData = (BYTE*) malloc(DataOut.cbData);
         if (NULL == DataOut.pbData)
         {
-            printf("Memory allocation error.\n");
-            exit(1);
+            MyHandleError("Memory allocation error!");
         }
     }
     else
     {
-        printf("Encrypted data size too big.\n");
-        exit(1);
+        MyHandleError("Encrypted data size too big!");
     }
 
     fread(DataOut.pbData, DataOut.cbData, 1, fileEnc);               // read encrypted blob
@@ -74,7 +71,6 @@ int main(int argc, char *argv[])
         &DataVerify))
     {
         printf("The decrypted data is: %s\n", DataVerify.pbData);
-        SecureZeroMemory(DataVerify.pbData, DataVerify.cbData);
         printf("The description of the data was: %S\n", pDescrOut);
     }
     else
@@ -88,7 +84,8 @@ int main(int argc, char *argv[])
 
     //-------------------------------------------------------------------
     //  Clean up.
-
+    
+    SecureZeroMemory(DataVerify.pbData, DataVerify.cbData);
     LocalFree(DataOut.pbData);
     LocalFree(pDescrOut);
     LocalFree(DataVerify.pbData);

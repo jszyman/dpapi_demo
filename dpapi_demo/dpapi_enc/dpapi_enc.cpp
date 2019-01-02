@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <windows.h>
 #include <Wincrypt.h>
+
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
+#define MAX_ENCRYPT_SIZE 1024U
 
 void MyHandleError(char *s);
 void printHelp(char* progName);
@@ -29,7 +31,7 @@ int main(int argc, char * argv[])
     DATA_BLOB DataIn;
     DATA_BLOB DataOut;
     DataIn.pbData = NULL;
-    DataIn.cbData = 1024U;
+    DataIn.cbData = MAX_ENCRYPT_SIZE;
     CHAR *fileName = "secret.enc";
     DWORD protFlags = 0;
 
@@ -76,6 +78,7 @@ int main(int argc, char * argv[])
     //-------------------------------------------------------------------
     //  Clean up.
 
+    SecureZeroMemory(DataIn.pbData, MAX_ENCRYPT_SIZE);
     LocalFree(DataIn.pbData);
     LocalFree(DataOut.pbData);
     exit(0);
