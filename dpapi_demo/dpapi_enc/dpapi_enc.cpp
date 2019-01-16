@@ -11,10 +11,11 @@
 
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 #define MAX_ENCRYPT_SIZE 1024U
+#define MAX_ENTROPY_SIZE 128U    //sha512 size shall fit
 
 void MyHandleError(char *s);
 void printHelp(char* progName);
-void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn);
+void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** entr, CHAR ** fn);
 void getDataForEncryption(BYTE * pb, DWORD cb);
 BOOL isStdinEmpty(void);
 
@@ -24,39 +25,49 @@ int main(int argc, char * argv[])
     // Copyright (C) Microsoft.  All rights reserved.
     // Encrypt data from DATA_BLOB DataIn to DATA_BLOB DataOut.
     // Then decrypt to DATA_BLOB DataVerify.
-
+    
     //-------------------------------------------------------------------
     // Declare and initialize variables.
 
     DATA_BLOB DataIn;
     DATA_BLOB DataOut;
+    DATA_BLOB DataEntropy;
     DataIn.pbData = NULL;
     DataIn.cbData = MAX_ENCRYPT_SIZE;
+    DataEntropy.pbData = NULL;
+    DataEntropy.cbData = MAX_ENTROPY_SIZE;
+    CHAR *entropy = "\\3ntR0py_";
     CHAR *fileName = "secret.enc";
     DWORD protFlags = 0;
 
     //-------------------------------------------------------------------
     //  Begin processing.
-    parseArgs(argc, argv, &protFlags, &fileName);
+    parseArgs(argc, argv, &protFlags, &entropy, &fileName);
+
     DataIn.pbData = (BYTE*) malloc(DataIn.cbData);
     if (DataIn.pbData == NULL)
     {
-        MyHandleError("Data In allocation error!");
+        MyHandleError("Input Data blob allocation error!");
     }
     getDataForEncryption(DataIn.pbData, DataIn.cbData);
     DataIn.cbData = strlen((char*)DataIn.pbData) + 1;   //encrypt only till '\0'
     printf("The data to be encrypted is: %s\n", DataIn.pbData);
 
+    DataEntropy.cbData = strlen(entropy) + 1;
+    DataEntropy.pbData = (BYTE*) malloc(DataEntropy.cbData);
+    strcpy_s((char*) DataEntropy.pbData, DataEntropy.cbData, entropy);
+    printf("Entropy used is: %s\n", DataEntropy.pbData);
+    
     //-------------------------------------------------------------------
     //  Begin protect phase.
 
     if (CryptProtectData(
         &DataIn,
-        L"This is the description string.", // A description string. 
-        NULL,                               // Optional entropy
+        L"",                // A description string. 
+        &DataEntropy,       // Optional entropy
         // not used.
-        NULL,                               // Reserved.
-        NULL,                               // optional PromptStruct.
+        NULL,               // Reserved.
+        NULL,               // optional PromptStruct.
         protFlags,
         &DataOut))
     {
@@ -103,15 +114,16 @@ void MyHandleError(char *s)
 void printHelp(char * progName)
 {
     printf("Program reads data for encryption from stdin and shall be called as follows:\n");
-    printf("%s [-user/-machine] <file_name>\n", progName);
+    printf("%s -[user/machine] [entropy] <file_name>\n", progName);
     printf("\t-user\t\t encrypts data for current user only\n");
     printf("\t-machine\t encrypts data for all authrenticated users in this machine\n");
+    printf("\tentropy\t\t string used for additional entropy source for encryption (prevents rainbow tables usage)\n");
     printf("\t<file_name>\t optional file name for encrypted data (default name is secret.enc)\n");
 }
 
-void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn)
+void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** entr, CHAR ** fn)
 {
-    if (argc >= 2)
+    if (argc >= 3)
     {
         if (strcmp(argv[1], "-machine") == 0)
             *flg |= CRYPTPROTECT_LOCAL_MACHINE;
@@ -119,8 +131,10 @@ void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn)
             // option "-user" encrypts only for current user
             *flg &= (~CRYPTPROTECT_LOCAL_MACHINE);
 
-        if (argc >= 3)
-            *fn = argv[2];
+        *entr = argv[2];
+
+        if (argc >= 4)
+            *fn = argv[3];
     }
     else
     {
@@ -128,6 +142,7 @@ void parseArgs(int argc, char * argv[], DWORD * flg, CHAR ** fn)
         exit(1);
     }
 }
+
 
 void getDataForEncryption(BYTE * pb, DWORD cb)
 {
@@ -137,6 +152,7 @@ void getDataForEncryption(BYTE * pb, DWORD cb)
     fgets( (char*)pb, cb, stdin);
     pb[strcspn( (char*)pb, "\n\r")] = '\0';
 }
+
 
 BOOL isStdinEmpty(void)
 {
