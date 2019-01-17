@@ -92,6 +92,7 @@ int main(int argc, char * argv[])
     SecureZeroMemory(DataIn.pbData, MAX_ENCRYPT_SIZE);
     LocalFree(DataIn.pbData);
     LocalFree(DataOut.pbData);
+    LocalFree(DataEntropy.pbData);
     exit(0);
 } // End of main
 
