@@ -26,11 +26,16 @@ int main(int argc, char *argv[])
 
     DATA_BLOB DataOut;
     DATA_BLOB DataVerify;
+    DATA_BLOB DataEntropy;
     LPWSTR pDescrOut = NULL;
     CHAR * fileName = "secret.enc";
+    CHAR *entropy = "\\3ntR0py_";
 
-    if (argc >= 2)
-        fileName = argv[1];
+    if (argc >= 3)
+    {
+        entropy = argv[1];
+        fileName = argv[2];
+    }
     else
     {
         printHelp(argv[0]);
@@ -55,6 +60,11 @@ int main(int argc, char *argv[])
         MyHandleError("Encrypted data size too big!");
     }
 
+    DataEntropy.cbData = strlen(entropy) + 1;
+    DataEntropy.pbData = (BYTE*) malloc(DataEntropy.cbData);
+    strcpy_s((char*)DataEntropy.pbData, DataEntropy.cbData, entropy);
+    printf("Entropy used is: %s\n", DataEntropy.pbData);
+
     fread(DataOut.pbData, DataOut.cbData, 1, fileEnc);               // read encrypted blob
     fclose(fileEnc);
 
@@ -64,7 +74,7 @@ int main(int argc, char *argv[])
     if (CryptUnprotectData(
         &DataOut,
         &pDescrOut,
-        NULL,                 // Optional entropy
+        &DataEntropy,         // Optional entropy
         NULL,                 // Reserved
         NULL,                 // Optional PromptStruct
         0,
@@ -111,6 +121,7 @@ void MyHandleError(char *s)
 void printHelp(char * progName)
 {
     printf("Program shall be called as follows:\n");
-    printf("%s file_name\n", progName);
+    printf("%s entropy file_name\n", progName);
+    printf("\tentropy\t\t string used for additional entropy source used for encryption\n");
     printf("\tfile_name\t file name with encrypted data\n");
 }
