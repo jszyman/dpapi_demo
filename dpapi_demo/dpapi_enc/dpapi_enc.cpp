@@ -9,9 +9,10 @@
 #include <windows.h>
 #include <Wincrypt.h>
 
+
 #define MY_ENCODING_TYPE  (PKCS_7_ASN_ENCODING | X509_ASN_ENCODING)
 #define MAX_ENCRYPT_SIZE 1024U
-#define MAX_ENTROPY_SIZE 128U    //sha512 size shall fit
+#define MAX_ENTROPY_SIZE 129U    //sha512 size shall fit
 
 void MyHandleError(char *s);
 void printHelp(char* progName);
@@ -25,7 +26,7 @@ int main(int argc, char * argv[])
     // Copyright (C) Microsoft.  All rights reserved.
     // Encrypt data from DATA_BLOB DataIn to DATA_BLOB DataOut.
     // Then decrypt to DATA_BLOB DataVerify.
-    
+
     //-------------------------------------------------------------------
     // Declare and initialize variables.
 
